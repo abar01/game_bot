@@ -13,10 +13,7 @@ const bot = new TelegramApi(token, { polling: true })
 const chats = {}
 
 mongoose
-  .connect(mongoURI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(mongoURI, {})
   .then(() => {
     console.log('Connected to MongoDB')
   })
