@@ -2,8 +2,7 @@ const TelegramApi = require('node-telegram-bot-api')
 const { gameOptions, againOptions } = require('./options')
 require('dotenv').config()
 const token = process.env.TOKEN
-
-// const token = '7503243615:AAFdwHNhFZijxN_G0PW-EZrukk_BQ6DPTyQ'
+const http = require('http')
 
 const bot = new TelegramApi(token, { polling: true })
 
@@ -83,3 +82,13 @@ const start = async () => {
 }
 
 start()
+
+const PORT = process.env.PORT || 3000
+http
+  .createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' })
+    res.end('Telegram bot is running.\n')
+  })
+  .listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`)
+  })
