@@ -1,12 +1,28 @@
 const TelegramApi = require('node-telegram-bot-api')
 const { gameOptions, againOptions } = require('./options')
 require('dotenv').config()
-const token = process.env.TOKEN
+const mongoose = require('mongoose')
 const http = require('http')
+const User = require('./models/User')
+
+const token = process.env.TOKEN
+const mongoURI = process.env.MONGO_URI
 
 const bot = new TelegramApi(token, { polling: true })
 
 const chats = {}
+
+mongoose
+  .connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log('Connected to MongoDB')
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err)
+  })
 
 const startGame = async (chatId) => {
   await bot.sendMessage(
@@ -65,19 +81,31 @@ const start = async () => {
       return bot.sendMessage(chatId, 'Game not started! Use /game to start.')
     }
 
+    let user = await User.findOne({ chatId })
+    if (!user) {
+      user = new User({
+        chatId,
+        firstName: msg.from.first_name,
+        lastName: msg.from.last_name || '',
+      })
+    }
+
     if (data == chats[chatId]) {
+      user.right += 1
       await bot.sendMessage(
         chatId,
         `Congratulations, you guessed the number ${chats[chatId]}!`,
         againOptions
       )
     } else {
+      user.wrong += 1
       await bot.sendMessage(
         chatId,
         `Unfortunately, you didn't guess. The number was ${chats[chatId]}.`,
         againOptions
       )
     }
+    await user.save()
   })
 }
 
